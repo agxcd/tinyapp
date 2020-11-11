@@ -34,6 +34,21 @@ app.post("/urls", (req, res) => {
   // res.send("Ok");
 });
 
+app.get("/register", (req, res) => {
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"],
+    email: req.cookies["email"],
+    password: req.cookies["password"],
+  };
+  res.render("register", templateVars);
+});
+
+app.post("/register", (req, res) => {
+  res.cookie("username", req.body.username);
+  res.redirect("/urls");
+});
+
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
   res.redirect("/urls");
