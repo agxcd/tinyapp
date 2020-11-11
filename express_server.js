@@ -33,6 +33,14 @@ const users = {
   },
 };
 
+const emailInUse = function (email) {
+  for (let user in users) {
+    if (users[user].email === email) {
+      return true;
+    }
+  }
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -62,14 +70,30 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  const { username, email, password } = req.body;
   const uid = generateRandomString();
-  users[uid] = {
-    id: uid,
-    username: req.body.username,
-    email: req.body.email,
-    password: req.body.password,
-  };
-  console.log("userdata", users);
+
+  if (!username || !email || !password) {
+    res
+      .status(400)
+      .send(
+        "Status code: 400. \n Please enter valid username or email or password."
+      );
+  } else if (emailInUse(email)) {
+    res
+      .status(400)
+      .send(
+        "Status code: 400. \n This email address is already in use, please login or register under another email address."
+      );
+  } else {
+    users[uid] = {
+      id: uid,
+      username: username,
+      email: email,
+      password: password,
+    };
+  }
+  console.log("user", users);
   res.cookie("user_id", uid);
   res.redirect("/urls");
 });
