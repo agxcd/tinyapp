@@ -27,13 +27,17 @@
         <table>
           <tbody>
             <h3>Edit</h3>
-            <form class="form-inline" action="/urls" method="POST">
+            <form
+              class="form-inline"
+              action="/urls/<%= shortURL %>/edit"
+              method="POST"
+            >
               <div class="form-group mb-2">
-                <label for="longURL">New URL:</label>
+                <label for="newURL">New URL:</label>
                 <input
                   class=""
                   type="text"
-                  name="longURL"
+                  name="newURL"
                   placeholder="http://"
                   style="width: 300px; margin: 1em"
                 />
