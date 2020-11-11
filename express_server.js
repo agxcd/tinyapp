@@ -41,6 +41,16 @@ const emailInUse = function (email) {
   }
 };
 
+const matchPassword = function (email) {
+  for (let user in users) {
+    if (users[user].email === email) {
+      return users[user].password;
+    }
+  }
+};
+
+console.log("password", matchPassword("user@example.com"));
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -72,7 +82,6 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const { username, email, password } = req.body;
   const uid = generateRandomString();
-
   if (!username || !email || !password) {
     res
       .status(400)
@@ -114,6 +123,23 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
+  for (let user in users) {
+    if (!emailInUse(email)) {
+      res
+        .status(403)
+        .send("Status code: 403. \n A User with that e-mail cannot be found.");
+      // .redirect("/register");
+    } else if (password !== matchPassword(email)) {
+      res
+        .status(403)
+        .send(
+          "Status code: 403. \n The e-mail address and the password does not match. Try again."
+        );
+      // .redirect("/login");
+    }
+    res.cookie("user_id", user);
+  }
+  res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
