@@ -20,7 +20,12 @@
     </div>
 
     <% if (!user) { %>
-    <form class="form-inline" action="/login" method="POST">
+    <div class="navbar-nav">
+      <a class="nav-item nav-link" href="/login">Login</a>
+      <a class="nav-item nav-link" href="/register">Register</a>
+    </div>
+
+    <!-- <form class="form-inline" action="/login" method="POST">
       <div class="form-group mb-2">
         <input
           class="form-control"
@@ -31,7 +36,7 @@
         &nbsp &nbsp
         <button type="submit" class="btn btn-outline-dark">login</button>
       </div>
-    </form>
+    </form> -->
 
     <% } else { %>
     <form class="form-inline" action="/logout" method="POST">
@@ -39,7 +44,5 @@
       <button type="submit" class="btn btn-outline-dark">logout</button>
     </form>
     <% } %>
-
-    <button class="btn"><a href="/register">register</a></button>
   </nav>
 </header>

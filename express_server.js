@@ -98,9 +98,22 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
+// app.post("/login", (req, res) => {
+//   res.cookie("user_id", req.body.user_id);
+//   res.redirect("/urls");
+// });
+
+app.get("/login", (req, res) => {
+  const user_id = req.cookies["user_id"];
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[user_id],
+  };
+  res.render("login", templateVars);
+});
+
 app.post("/login", (req, res) => {
-  res.cookie("user_id", req.body.user_id);
-  res.redirect("/urls");
+  const { email, password } = req.body;
 });
 
 app.post("/logout", (req, res) => {
