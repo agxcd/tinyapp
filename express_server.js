@@ -21,6 +21,8 @@ function generateRandomString() {
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" },
+  o4r252: { longURL: "http://www.lighthouselabs.ca", userID: "test" },
+  o4r242: { longURL: "http://www.lighthouse.ca", userID: "test" },
 };
 
 const users = {
@@ -60,6 +62,17 @@ const matchPassword = function (email) {
   }
 };
 
+const urlsForUser = function (id) {
+  let urlsUser = {};
+  for (let url in urlDatabase) {
+    if (id === urlDatabase[url].userID) {
+      urlsUser[url] = { longURL: urlDatabase[url].longURL };
+    }
+  }
+  return urlsUser;
+};
+
+// console.log(urlsForUser("test"));
 // console.log("password", matchPassword("user@example.com"));
 
 app.get("/", (req, res) => {
@@ -68,11 +81,17 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user_id = req.cookies["user_id"];
-  const templateVars = {
-    urls: urlDatabase,
-    user: users[user_id],
-  };
-  res.render("urls_index", templateVars);
+  const urls = urlsForUser(user_id);
+  // console.log(urls);
+  if (!user_id) {
+    res.redirect("/login");
+  } else {
+    const templateVars = {
+      urls: urls,
+      user: users[user_id],
+    };
+    res.render("urls_index", templateVars);
+  }
 });
 
 app.post("/urls", (req, res) => {
@@ -89,7 +108,6 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
   // }
 });
-console.log(urlDatabase);
 
 app.get("/register", (req, res) => {
   const user_id = req.cookies["user_id"];
@@ -210,7 +228,7 @@ app.get("/u/:shortURL", (req, res) => {
 //   const templateVars = { greeting: "Hello World!" };
 //   res.render("hello_world", templateVars);
 // });
-console.log(urlDatabase);
+// console.log(urlDatabase);
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
