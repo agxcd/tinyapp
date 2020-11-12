@@ -26,28 +26,34 @@
           <tr>
             <th scope="col">Short URL</th>
             <th scope="col">Long URL</th>
+            <% if (user) { %>
             <th scope="col">Edit</th>
-
             <th scope="col">Delete</th>
+            <% } %>
           </tr>
         </thead>
         <tbody>
           <% for(let url in urls) { %>
           <tr>
             <td><%= url %></td>
-            <td><%= urls[url] %></td>
+            <td><%= urls[url].longURL %></td>
             <td>
               <form method="GET" action="/urls/<%= url %>">
+                <% if (user) { %>
                 <button type="submit" class="btn btn-outline-primary">
                   Edit
                 </button>
+                <% } %>
               </form>
             </td>
             <td>
               <form method="POST" action="/urls/<%= url %>/delete">
+                <% if (user) { %>
+
                 <button type="submit" class="btn btn-outline-danger">
                   Delete
                 </button>
+                <% } %>
               </form>
             </td>
           </tr>
