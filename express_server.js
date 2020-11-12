@@ -61,6 +61,13 @@ const matchPassword = function (email) {
     }
   }
 };
+const matchUser = function (email) {
+  for (let user in users) {
+    if (users[user].email === email) {
+      return user;
+    }
+  }
+};
 
 const urlsForUser = function (id) {
   let urlsUser = {};
@@ -162,22 +169,20 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  for (let user in users) {
-    if (!emailInUse(email)) {
-      res
-        .status(403)
-        .send("Status code: 403. \n A User with that e-mail cannot be found.");
-      // .redirect("/register");
-    } else if (password !== matchPassword(email)) {
-      res
-        .status(403)
-        .send(
-          "Status code: 403. \n The e-mail address and the password does not match. Try again."
-        );
-      // .redirect("/login");
-    }
-    res.cookie("user_id", user);
+  if (!emailInUse(email)) {
+    res
+      .status(403)
+      .send("Status code: 403. \n A User with that e-mail cannot be found.");
+    // .redirect("/register");
+  } else if (password !== matchPassword(email)) {
+    res
+      .status(403)
+      .send(
+        "Status code: 403. \n The e-mail address and the password does not match. Try again."
+      );
   }
+  let user_id = matchUser(email);
+  res.cookie("user_id", user_id);
   res.redirect("/urls");
 });
 
