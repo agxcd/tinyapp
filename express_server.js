@@ -3,6 +3,15 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 
+const bcrypt = require("bcrypt");
+// let password = "purple-monkey-dinosaur"; // found in the req.params object
+// const hashedPassword = bcrypt.hashSync(password, 10);
+
+// console.log(bcrypt.compareSync("purple-monkey-dinosaur", hashedPassword)); // returns true
+// console.log(bcrypt.compareSync("pink-donkey-minotaur", hashedPassword)); // returns false
+
+// console.log(hashedPassword);
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
@@ -13,16 +22,10 @@ function generateRandomString() {
   return Math.random().toString(36).substring(7);
 }
 
-// const urlDatabase = {
-//   b2xVn2: "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com",
-// };
-
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" },
-  o4r252: { longURL: "http://www.lighthouselabs.ca", userID: "test" },
-  o4r242: { longURL: "http://www.lighthouse.ca", userID: "test" },
+  o4r252: { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
 };
 
 const users = {
@@ -30,28 +33,20 @@ const users = {
     id: "userRandomID",
     username: "userRandomName",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10),
   },
   user2RandomID: {
     id: "user2RandomID",
     username: "user2RandomName",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: bcrypt.hashSync("dishwasher-funk", 10),
   },
-  test: {
-    id: "test",
+  aJ48lW: {
+    id: "aJ48lW",
     username: "user",
     email: "123@1.com",
-    password: "123",
+    password: bcrypt.hashSync("123", 10),
   },
-};
-
-const emailInUse = function (email) {
-  for (let user in users) {
-    if (users[user].email === email) {
-      return true;
-    }
-  }
 };
 
 const matchPassword = function (email) {
@@ -78,9 +73,6 @@ const urlsForUser = function (id) {
   }
   return urlsUser;
 };
-
-// console.log(urlsForUser("test"));
-// console.log("password", matchPassword("user@example.com"));
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -126,6 +118,10 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  // const hashedPassword = bcrypt.hashSync(password, 10);
+
+  // // console.log(bcrypt.compareSync("purple-monkey-dinosaur", hashedPassword)); // returns true
+  // //
   const { username, email, password } = req.body;
   const uid = generateRandomString();
   if (!username || !email || !password) {
@@ -134,7 +130,7 @@ app.post("/register", (req, res) => {
       .send(
         "Status code: 400. \n Please enter valid username or email or password."
       );
-  } else if (emailInUse(email)) {
+  } else if (matchUser(email)) {
     res
       .status(400)
       .send(
@@ -145,18 +141,14 @@ app.post("/register", (req, res) => {
       id: uid,
       username: username,
       email: email,
-      password: password,
+      password: bcrypt.hashSync(password, 10),
     };
   }
-  // console.log("user", users);
+  console.log("users", users);
+
   res.cookie("user_id", uid);
   res.redirect("/urls");
 });
-
-// app.post("/login", (req, res) => {
-//   res.cookie("user_id", req.body.user_id);
-//   res.redirect("/urls");
-// });
 
 app.get("/login", (req, res) => {
   const user_id = req.cookies["user_id"];
@@ -169,12 +161,11 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  if (!emailInUse(email)) {
+  if (!matchUser(email)) {
     res
       .status(403)
       .send("Status code: 403. \n A User with that e-mail cannot be found.");
-    // .redirect("/register");
-  } else if (password !== matchPassword(email)) {
+  } else if (!bcrypt.compareSync(password, matchPassword(email))) {
     res
       .status(403)
       .send(
@@ -228,12 +219,6 @@ app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
-
-// app.get("/hello", (req, res) => {
-//   const templateVars = { greeting: "Hello World!" };
-//   res.render("hello_world", templateVars);
-// });
-// console.log(urlDatabase);
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
