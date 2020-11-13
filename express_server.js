@@ -18,9 +18,7 @@ app.set("view engine", "ejs");
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
-function generateRandomString() {
-  return Math.random().toString(36).substring(7);
-}
+const idRandom = () => Math.random().toString(36).substring(7);
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
@@ -49,14 +47,14 @@ const users = {
   },
 };
 
-const matchPassword = function (email) {
+const matchPassword = (email) => {
   for (let user in users) {
     if (users[user].email === email) {
       return users[user].password;
     }
   }
 };
-const matchUser = function (email) {
+const matchUser = (email) => {
   for (let user in users) {
     if (users[user].email === email) {
       return user;
@@ -64,7 +62,7 @@ const matchUser = function (email) {
   }
 };
 
-const urlsForUser = function (id) {
+const urlsForUser = (id) => {
   let urlsUser = {};
   for (let url in urlDatabase) {
     if (id === urlDatabase[url].userID) {
@@ -94,7 +92,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString();
+  const shortURL = idRandom();
   const user_id = req.cookies["user_id"];
   // if (!user_id) {
   //   res.redirect("/login");
@@ -123,7 +121,7 @@ app.post("/register", (req, res) => {
   // // console.log(bcrypt.compareSync("purple-monkey-dinosaur", hashedPassword)); // returns true
   // //
   const { username, email, password } = req.body;
-  const uid = generateRandomString();
+  const uid = idRandom();
   if (!username || !email || !password) {
     res
       .status(400)
