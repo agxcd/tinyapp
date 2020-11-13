@@ -18,6 +18,7 @@ app.use(cookieSession({
   //expire in 3 hours
 }));
 
+//Database
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" },
@@ -45,21 +46,13 @@ const users = {
   },
 };
 
-const idRandom = () => {
-  return Math.random().toString(36).substring(7);
-};
+//Helper Functions 
+const {idRandom, getUserByEmail} = require("./helpers");
 
 const matchPassword = function (email) {
   for (let user in users) {
     if (users[user].email === email) {
       return users[user].password;
-    }
-  }
-};
-const matchUser = function (email) {
-  for (let user in users) {
-    if (users[user].email === email) {
-      return user;
     }
   }
 };
@@ -126,7 +119,7 @@ app.post("/register", (req, res) => {
       .send(
         "Status code: 400. \n Please enter valid username or email or password."
       );
-  } else if (matchUser(email)) {
+  } else if (getUserByEmail(email, users)) {
     res
       .status(400)
       .send(
@@ -158,7 +151,7 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  if (!matchUser(email)) {
+  if (!getUserByEmail(email, users)) {
     res
       .status(403)
       .send("Status code: 403. \n A User with that e-mail cannot be found.");
@@ -169,7 +162,7 @@ app.post("/login", (req, res) => {
         "Status code: 403. \n The e-mail address and the password does not match. Try again."
       );
   }
-  let user_id = matchUser(email);
+  let user_id = getUserByEmail(email, users);
   req.session.user_id = user_id;
   res.redirect("/urls");
 });
