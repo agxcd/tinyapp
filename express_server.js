@@ -13,7 +13,9 @@ app.use(morgan('dev'));
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2'],
+  //i don't understand the keys , is this default? 
   maxAge: 3 * 60 * 60 * 1000,
+  //expire in 3 hours
 }));
 
 const urlDatabase = {
@@ -76,6 +78,8 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+//The index main page
+
 app.get("/urls", (req, res) => {
   const user_id = req.session["user_id"];
   const urls = urlsForUser(user_id);
@@ -98,8 +102,11 @@ app.post("/urls", (req, res) => {
     longURL = "https://" + longURL;
   }
   urlDatabase[shortURL] = { longURL: longURL, userID: user_id };
+  console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
+
+//Register Page
 
 app.get("/register", (req, res) => {
   const user_id = req.session["user_id"];
@@ -126,16 +133,19 @@ app.post("/register", (req, res) => {
         "Status code: 400. \n This email address is already in use, please login or register under another email address."
       );
   } else {
-    users[uid] = {
+    let newUser = {
       id: uid,
       username: username,
       email: email,
       password: bcrypt.hashSync(password, 10),
     };
-    req.session.user_id = user;
+    users[uid] = newUser;
+    console.log (users);
   }
-  res.redirect("/urls");
+  res.redirect("/login");
 });
+
+//Login Page
 
 app.get("/login", (req, res) => {
   const user_id = req.session["user_id"];
@@ -164,10 +174,14 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+//Logout
+
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
+
+// Create new link 
 
 app.get("/urls/new", (req, res) => {
   const user_id = req.session["user_id"];
@@ -192,6 +206,8 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+//URLs delete and edit 
+
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect("/urls");
@@ -206,6 +222,8 @@ app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
+
+//Urls Json
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
