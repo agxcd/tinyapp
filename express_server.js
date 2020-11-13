@@ -4,7 +4,7 @@ const PORT = 8080;
 const bodyParser = require("body-parser");
 
 const bcrypt = require("bcrypt");
-const morgan = require('morgan')
+const morgan = require('morgan');
 const cookieSession = require('cookie-session');
 
 app.use(bodyParser.urlencoded({
@@ -90,14 +90,14 @@ app.get("/", (req, res) => {
 //The index main page
 
 app.get("/urls", (req, res) => {
-  const user_id = req.session["user_id"];
-  const urls = urlsForUser(user_id);
-  if (!user_id) {
+  const userId = req.session["userId"];
+  const urls = urlsForUser(userId);
+  if (!userId) {
     res.redirect("/login");
   } else {
     const templateVars = {
       urls: urls,
-      user: users[user_id],
+      user: users[userId],
     };
     res.render("urls_index", templateVars);
   }
@@ -105,14 +105,14 @@ app.get("/urls", (req, res) => {
 
 app.post("/urls", (req, res) => {
   const shortURL = idRandom();
-  const user_id = req.session["user_id"];
+  const userId = req.session["userId"];
   let longURL = req.body.longURL;
   if (!longURL.startsWith("http")) {
     longURL = "https://" + longURL;
   }
   urlDatabase[shortURL] = {
     longURL: longURL,
-    userID: user_id
+    userID: userId
   };
   console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
@@ -121,10 +121,10 @@ app.post("/urls", (req, res) => {
 //Register Page
 
 app.get("/register", (req, res) => {
-  const user_id = req.session["user_id"];
+  const userId = req.session["userId"];
   const templateVars = {
     urls: urlDatabase,
-    user: users[user_id],
+    user: users[userId],
   };
   res.render("register", templateVars);
 });
@@ -164,10 +164,10 @@ app.post("/register", (req, res) => {
 //Login Page
 
 app.get("/login", (req, res) => {
-  const user_id = req.session["user_id"];
+  const userId = req.session["userId"];
   const templateVars = {
     urls: urlDatabase,
-    user: users[user_id],
+    user: users[userId],
   };
   res.render("login", templateVars);
 });
@@ -188,8 +188,8 @@ app.post("/login", (req, res) => {
         "Status code: 403. \n The e-mail address and the password does not match. Try again."
       );
   }
-  let user_id = getUserByEmail(email, users);
-  req.session.user_id = user_id;
+  let userId = getUserByEmail(email, users);
+  req.session.userId = userId;
   res.redirect("/urls");
 });
 
@@ -203,24 +203,24 @@ app.post("/logout", (req, res) => {
 // Create new link
 
 app.get("/urls/new", (req, res) => {
-  const user_id = req.session["user_id"];
-  if (!user_id) {
+  const userId = req.session["userId"];
+  if (!userId) {
     res.redirect("/login");
   } else {
     const templateVars = {
       urls: urlDatabase,
-      user: users[user_id],
+      user: users[userId],
     };
     res.render("urls_new", templateVars);
   }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const user_id = req.session["user_id"];
+  const userId = req.session["userId"];
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
-    user: users[user_id],
+    user: users[userId],
   };
   res.render("urls_show", templateVars);
 });
