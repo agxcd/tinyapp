@@ -4,23 +4,17 @@ const PORT = 8080;
 const bodyParser = require("body-parser");
 
 const bcrypt = require("bcrypt");
-// let password = "purple-monkey-dinosaur"; // found in the req.params object
-// const hashedPassword = bcrypt.hashSync(password, 10);
-
-// console.log(bcrypt.compareSync("purple-monkey-dinosaur", hashedPassword)); // returns true
-// console.log(bcrypt.compareSync("pink-donkey-minotaur", hashedPassword)); // returns false
-
-// console.log(hashedPassword);
+const morgan = require('morgan')
+const cookieSession = require('cookie-session');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
-
-const cookieParser = require("cookie-parser");
-app.use(cookieParser());
-
-function generateRandomString() {
-  return Math.random().toString(36).substring(7);
-}
+app.use(morgan('dev'));
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2'],
+  maxAge: 3 * 60 * 60 * 1000,
+}));
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
@@ -47,6 +41,10 @@ const users = {
     email: "123@1.com",
     password: bcrypt.hashSync("123", 10),
   },
+};
+
+const idRandom = () => {
+  return Math.random().toString(36).substring(7);
 };
 
 const matchPassword = function (email) {
@@ -79,9 +77,8 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session["user_id"];
   const urls = urlsForUser(user_id);
-  // console.log(urls);
   if (!user_id) {
     res.redirect("/login");
   } else {
@@ -94,22 +91,18 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString();
-  const user_id = req.cookies["user_id"];
-  // if (!user_id) {
-  //   res.redirect("/login");
-  // } else {
+  const shortURL = idRandom();
+  const user_id = req.session["user_id"];
   let longURL = req.body.longURL;
   if (!longURL.startsWith("http")) {
     longURL = "https://" + longURL;
   }
   urlDatabase[shortURL] = { longURL: longURL, userID: user_id };
   res.redirect(`/urls/${shortURL}`);
-  // }
 });
 
 app.get("/register", (req, res) => {
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session["user_id"];
   const templateVars = {
     urls: urlDatabase,
     user: users[user_id],
@@ -118,12 +111,8 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  // const hashedPassword = bcrypt.hashSync(password, 10);
-
-  // // console.log(bcrypt.compareSync("purple-monkey-dinosaur", hashedPassword)); // returns true
-  // //
   const { username, email, password } = req.body;
-  const uid = generateRandomString();
+  const uid = idRandom();
   if (!username || !email || !password) {
     res
       .status(400)
@@ -143,15 +132,13 @@ app.post("/register", (req, res) => {
       email: email,
       password: bcrypt.hashSync(password, 10),
     };
+    req.session.user_id = user;
   }
-  console.log("users", users);
-
-  res.cookie("user_id", uid);
   res.redirect("/urls");
 });
 
 app.get("/login", (req, res) => {
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session["user_id"];
   const templateVars = {
     urls: urlDatabase,
     user: users[user_id],
@@ -173,17 +160,17 @@ app.post("/login", (req, res) => {
       );
   }
   let user_id = matchUser(email);
-  res.cookie("user_id", user_id);
+  req.session.user_id = user_id;
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/urls");
 });
 
 app.get("/urls/new", (req, res) => {
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session["user_id"];
   if (!user_id) {
     res.redirect("/login");
   } else {
@@ -196,7 +183,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session["user_id"];
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
