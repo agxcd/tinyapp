@@ -7,22 +7,33 @@ const bcrypt = require("bcrypt");
 const morgan = require('morgan')
 const cookieSession = require('cookie-session');
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 app.set("view engine", "ejs");
 app.use(morgan('dev'));
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2'],
-  //i don't understand the keys , is this default? 
+  //i don't understand the keys , is this default?
   maxAge: 3 * 60 * 60 * 1000,
   //expire in 3 hours
 }));
 
 //Database
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" },
-  o4r252: { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID" },
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW"
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW"
+  },
+  o4r252: {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "userRandomID"
+  },
 };
 
 const users = {
@@ -46,10 +57,13 @@ const users = {
   },
 };
 
-//Helper Functions 
-const {idRandom, getUserByEmail} = require("./helpers");
+//Helper Functions
+const {
+  idRandom,
+  getUserByEmail
+} = require("./helpers");
 
-const matchPassword = function (email) {
+const matchPassword = function(email) {
   for (let user in users) {
     if (users[user].email === email) {
       return users[user].password;
@@ -57,11 +71,13 @@ const matchPassword = function (email) {
   }
 };
 
-const urlsForUser = function (id) {
+const urlsForUser = function(id) {
   let urlsUser = {};
   for (let url in urlDatabase) {
     if (id === urlDatabase[url].userID) {
-      urlsUser[url] = { longURL: urlDatabase[url].longURL };
+      urlsUser[url] = {
+        longURL: urlDatabase[url].longURL
+      };
     }
   }
   return urlsUser;
@@ -94,7 +110,10 @@ app.post("/urls", (req, res) => {
   if (!longURL.startsWith("http")) {
     longURL = "https://" + longURL;
   }
-  urlDatabase[shortURL] = { longURL: longURL, userID: user_id };
+  urlDatabase[shortURL] = {
+    longURL: longURL,
+    userID: user_id
+  };
   console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
@@ -111,7 +130,11 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const { username, email, password } = req.body;
+  const {
+    username,
+    email,
+    password
+  } = req.body;
   const uid = idRandom();
   if (!username || !email || !password) {
     res
@@ -133,7 +156,7 @@ app.post("/register", (req, res) => {
       password: bcrypt.hashSync(password, 10),
     };
     users[uid] = newUser;
-    console.log (users);
+    console.log(users);
   }
   res.redirect("/login");
 });
@@ -150,7 +173,10 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const { email, password } = req.body;
+  const {
+    email,
+    password
+  } = req.body;
   if (!getUserByEmail(email, users)) {
     res
       .status(403)
@@ -174,7 +200,7 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
-// Create new link 
+// Create new link
 
 app.get("/urls/new", (req, res) => {
   const user_id = req.session["user_id"];
@@ -199,7 +225,7 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-//URLs delete and edit 
+//URLs delete and edit
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
