@@ -71,6 +71,14 @@ const matchPassword = function(email) {
   }
 };
 
+const urlForID = function(shortURL) {
+  for (let key in urlDatabase) {
+    if (key === shortURL) {
+      return urlDatabase[key].userID;
+    }
+  }
+};
+
 const urlsForUser = function(id) {
   let urlsUser = {};
   for (let url in urlDatabase) {
@@ -217,12 +225,22 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const userId = req.session["userId"];
-  const templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
-    user: users[userId],
-  };
-  res.render("urls_show", templateVars);
+  if (!urlForID(req.params.shortURL)) {
+    res
+      .status(404)
+      .send("Status code: 404. \n The short link is not exist.");
+  } else if (urlForID(req.params.shortURL) !== userId) {
+    res
+      .status(404)
+      .send("Status code: 404. \n You have no ownership of this short URL.");
+  } else {
+    const templateVars = {
+      shortURL: req.params.shortURL,
+      longURL: urlDatabase[req.params.shortURL].longURL,
+      user: users[userId],
+    };
+    res.render("urls_show", templateVars);
+  }
 });
 
 //URLs delete and edit
@@ -238,8 +256,19 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
+  const userId = req.session["userId"];
+  if (!urlForID(req.params.shortURL)) {
+    res
+      .status(404)
+      .send("Status code: 404. \n The short link is not exist.");
+  } else if (urlForID(req.params.shortURL) !== userId) {
+    res
+      .status(404)
+      .send("Status code: 404. \n You have no ownership of this short URL.");
+  } else {
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+  }
 });
 
 //Urls Json
